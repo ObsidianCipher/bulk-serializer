@@ -1,177 +1,130 @@
 # Serializer Demo Project
 
-A Flutter application that provides a user-friendly interface for serializing files and directories with configurable indexing options.
+A polished Flutter + Flask utility for renaming files and directories with consistent naming patterns. The interface lets you choose a name prefix, a separator, and either a file list or a directory target before sending the request to the backend API.
 
-## Features
+## Highlights
 
-- **File/Directory Selection**: Choose between selecting individual files in order or an entire directory
-- **Configurable Indexing**: Select from three indexer options for serialization:
-  - Underscore (`_`)
-  - Dash (`-`)
-  - Space (` `)
-- **Dark Mode Support**: Toggle between light and dark themes
-- **Real-time Display**: View selected files/directories before processing
-- **Backend Integration**: Communicates with a backend API for serialization processing
-- **Error Handling**: Comprehensive error handling with user-friendly notifications
+- File or directory selection flow
+- Custom prefix support, such as `serial`, `project`, or `batch`
+- Three separator styles: underscore, dash, or space
+- Dark-mode toggle for the desktop app shell
+- Safe backend processing with validation and collision avoidance
+- Clear success and error messaging
 
 ## Prerequisites
 
-- Flutter SDK (latest stable version)
+- Flutter SDK
 - Dart SDK
-- Backend server running on `http://localhost:5000`
-- Required Flutter packages:
-  - `flutter/material.dart`
-  - `file_selector`
-  - `http`
+- Python 3.10+
+- Flask installed in the environment used for the backend
 
-## Installation
+## Quick start
 
-1. **Clone or extract the project**
-   ```bash
-   cd serializer_demo_prjoct1
-   ```
+1. Install the Flutter dependencies:
 
-2. **Install dependencies**
    ```bash
    flutter pub get
    ```
 
-3. **Run the application**
+2. Start the backend:
+
+   ```bash
+   python backend.py
+   ```
+
+3. Run the app:
+
    ```bash
    flutter run
    ```
 
-## Project Structure
-
-```
-lib/
-├── main.dart          # Main application entry point
-└── ...
-```
-
-## Usage
-
-### Application Workflow
-
-1. **Enter Serialization String** (optional)
-   - Enter text in the TextField at the top of the screen
-
-2. **Select File Indexer**
-   - Choose one of three indexing methods:
-     - Underscore (_)
-     - Dash (-)
-     - Space ( )
-
-3. **Choose File Operation Method**
-   - **Select File in order**: Pick individual files sequentially
-   - **Select Directory**: Pick an entire directory
-
-4. **Select Files/Directory**
-   - Click the "Select" button to open the file/directory picker
-   - Selected items will display in the list below
-
-5. **Serialize**
-   - Click the "Serialize" button to process the selected files
-   - The app will send data to the backend and display the result
-
-### UI Components
-
-- **AppBar**: Contains title and dark mode toggle
-- **Input TextField**: For entering serialization string
-- **Radio Cards**: Configuration options for indexer and file operations
-- **File Operations Card**: File selection and display
-- **Serialize Button**: Submits data to backend
+4. In the app, enter a prefix like `serial`, choose a separator, pick one or more files or a directory, and hit Serialize.
 
 ## Backend API
 
-### Endpoint
+### Health check
 
+```http
+GET http://localhost:5000/health
 ```
+
+### Serialize files
+
+```http
 POST http://localhost:5000/serialize
+Content-Type: application/json
 ```
 
-### Request Format
+Example payload:
 
 ```json
 {
-  "files": ["path/to/file1", "path/to/file2"],
+  "files": [
+    "C:/Example/report.pdf",
+    "C:/Example/notes.txt"
+  ],
+  "prefix": "serial",
   "indexer": "_",
   "operation": "fop1"
 }
 ```
 
-### Response Format
+Example directory payload:
 
 ```json
 {
-  "results": [...]
+  "files": ["C:/Example/photos"],
+  "prefix": "batch",
+  "indexer": "-",
+  "operation": "fop2"
 }
 ```
 
-## State Management
+Response example:
 
-The application uses Flutter's built-in `StatefulWidget` for state management:
-
-- `MyApp`: Manages dark mode state
-- `MyHomePage`: Manages UI state (selected files, options, etc.)
-
-## Error Handling
-
-The application handles:
-- Network timeouts (10-second timeout)
-- Backend errors (non-200 status codes)
-- Connection failures
-- Displays user-friendly error messages via SnackBar
-
-## Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  file_selector: ^0.x.x
-  http: ^0.x.x
+```json
+{
+  "status": "success",
+  "results": [
+    {
+      "path": "C:/Example/report.pdf",
+      "status": "success",
+      "new_name": "serial_1.pdf",
+      "index": 1
+    }
+  ]
+}
 ```
 
-## Theme Configuration
+## Current project structure
 
-- **Light Theme**: Blue accent color (RGB: 117, 186, 235)
-- **Dark Theme**: Same accent with dark brightness
-- **Material 3**: Enabled for modern design
+```text
+.
+├── backend.py
+├── lib/
+│   └── main.dart
+├── test/
+│   └── widget_test.dart
+├── pubspec.yaml
+├── README.md
+└── run_backend.sh
+```
 
-## Known Limitations
+## Improvements applied
 
-- Backend must be running on localhost:5000
-- 10-second timeout for API requests
-- File picker functionality depends on OS support
+- Replaced the starter Flutter UI with a more intentional, user-friendly workflow
+- Connected the name prefix to actual backend payloads
+- Added validation for backend requests and safer file renaming
+- Added unique-name collision protection so existing files are not overwritten silently
+- Improved error feedback with clearer snackbars and status handling
+- Reworked widget tests from the default template to meaningful app-level checks
 
-## Future Enhancements
+## Notes
 
-- Add file preview functionality
-- Support for multiple backend endpoints
-- Progress bar for serialization
-- Batch processing with queuing
-- Export results to file
-- Settings/configuration screen
-
-## Troubleshooting
-
-### "Unable to connect to backend"
-- Ensure backend server is running on `http://localhost:5000`
-- Check network connectivity
-
-### "File picker not working"
-- Ensure `file_selector` package is properly installed
-- Run `flutter clean` and `flutter pub get`
-
-### Theme not changing
-- Ensure MaterialApp theme is properly rebuilt
-- Check device theme settings
+- The backend currently expects the Flask server to be running locally on port 5000.
+- File names are created in a deterministic pattern such as `serial_1.pdf`, `batch-2.txt`, and so on.
+- When a target name already exists, the backend creates a unique alternative like `serial_1 (2).pdf`.
 
 ## License
 
-[Add your license here]
-
-## Support
-
-For issues or questions, please contact the development team.
+This project is provided as a local development demo. Add a proper license if you plan to distribute it publicly.

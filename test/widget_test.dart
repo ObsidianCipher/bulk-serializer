@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:serializer_demo_prjoct1/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('app renders main serializer UI and toggles theme', (tester) async {
+    await tester.pumpWidget(const SerializerApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Serializer'), findsOneWidget);
+    expect(find.text('Serialize'), findsOneWidget);
+    expect(find.text('Name prefix'), findsOneWidget);
+    expect(find.byIcon(Icons.dark_mode), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.byIcon(Icons.dark_mode));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byIcon(Icons.light_mode), findsOneWidget);
+  });
+
+  testWidgets('history screen exposes export/import controls and detail view', (tester) async {
+    final result = BatchResult(
+      id: 'demo-1',
+      createdAt: DateTime(2026, 9, 7, 12, 0),
+      success: true,
+      title: 'Serialization succeeded',
+      summary: 'Processed 1 item successfully.',
+      logs: const ['Batch ready'],
+      selectedPaths: const ['/tmp/demo.txt'],
+      itemsProcessed: 1,
+      totalItems: 1,
+      itemResults: const [
+        BatchItemOutcome(
+          path: '/tmp/demo.txt',
+          status: 'success',
+          summary: 'Renamed to serial_1.txt',
+          newName: 'serial_1.txt',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ResultsHistoryScreen(
+          history: [result],
+          onHistoryChanged: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('Results history'), findsOneWidget);
+    expect(find.text('Export history'), findsOneWidget);
+    expect(find.text('Import history'), findsOneWidget);
+
+    await tester.tap(find.text('View details'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('/tmp/demo.txt'), findsOneWidget);
+    expect(find.text('Renamed to serial_1.txt'), findsOneWidget);
   });
 }
